@@ -57,40 +57,18 @@ public class RefactorEnemy : MonoBehaviour
         // changes the enemy's behavior: pacing in circles or chasing the player
         if (enemyStats.idle == true)
         {
-            //Patrol Logic
-                Vector3 moveToPoint = patrolPoints[currentPatrolPoint].position;
-                transform.position = Vector3.MoveTowards(transform.position, moveToPoint, enemyStats.walkSpeed * Time.deltaTime);
-
-                if (Vector3.Distance(transform.position, moveToPoint) < 0.01f)
-                {
-                    currentPatrolPoint++;
-                    if (currentPatrolPoint > patrolPoints.Length - 1)
-                    {
-                        currentPatrolPoint = 0;
-                    }
-                }
+            RefactorPatrol();
         }
+
         else if (enemyStats.idle == false)
         {
-            //Chase the player
-             sight.position = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
-             transform.LookAt(sight);
-             transform.position = Vector3.MoveTowards(transform.position, player.transform.position, Time.deltaTime * enemyStats.chaseSpeed);
-           
-            //Explode if we get within the enemyStats.explodeDist
-            if (Vector3.Distance(transform.position, player.transform.position) < enemyStats.explodeDist)
-            {
-                StartCoroutine("Explode");
-                enemyStats.idle = true;
-            }
+            ChasePlayer();
+            EnemyExplode();
         }
 
-        // stops enemy from following player up the inaccessible slopes
-        if (slipping == true)
-        {
-            transform.Translate(Vector3.back * 20 * Time.deltaTime, Space.World);
-        }
+        EnemySlipping();
     }
+
     private void OnCollisionEnter(Collision other)
     {
         if (other.gameObject.layer == 9)
@@ -130,5 +108,46 @@ public class RefactorEnemy : MonoBehaviour
         Destroy(transform.parent.gameObject);
     }
 
+    private void RefactorPatrol()
+    {
+        //Patrol Logic
+        Vector3 moveToPoint = patrolPoints[currentPatrolPoint].position;
+        transform.position = Vector3.MoveTowards(transform.position, moveToPoint, enemyStats.walkSpeed * Time.deltaTime);
 
+        if (Vector3.Distance(transform.position, moveToPoint) < 0.01f)
+        {
+            currentPatrolPoint++;
+            if (currentPatrolPoint > patrolPoints.Length - 1)
+            {
+                currentPatrolPoint = 0;
+            }
+        }
+    }
+
+    private void ChasePlayer()
+    {
+        //Chase the player
+        sight.position = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
+        transform.LookAt(sight);
+        transform.position = Vector3.MoveTowards(transform.position, player.transform.position, Time.deltaTime * enemyStats.chaseSpeed);
+    }
+
+    private void EnemyExplode()
+    {
+        //Explode if we get within the enemyStats.explodeDist
+        if (Vector3.Distance(transform.position, player.transform.position) < enemyStats.explodeDist)
+        {
+            StartCoroutine("Explode");
+            enemyStats.idle = true;
+        }
+    }
+
+    private void EnemySlipping()
+    {
+        // stops enemy from following player up the inaccessible slopes
+        if (slipping == true)
+        {
+            transform.Translate(Vector3.back * 20 * Time.deltaTime, Space.World);
+        }
+    }
 }
